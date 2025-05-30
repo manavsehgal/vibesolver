@@ -1,6 +1,30 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { render, screen } from '@/test/utils';
 import App from './App';
+
+// Mock the hooks that cause issues in tests
+vi.mock('@/hooks/useAI', () => ({
+  useGenerateAWSSolution: () => ({
+    mutateAsync: vi.fn(),
+    isPending: false,
+  }),
+}));
+
+vi.mock('@/hooks/useSolutions', () => ({
+  useSaveSolution: () => ({
+    mutateAsync: vi.fn(),
+    isPending: false,
+  }),
+}));
+
+vi.mock('./components/ui/Toast', () => ({
+  useToast: () => ({
+    success: vi.fn(),
+    error: vi.fn(),
+    info: vi.fn(),
+  }),
+  ToastContainer: () => null,
+}));
 
 describe('App', () => {
   it('renders VibeSolver heading', () => {
@@ -13,10 +37,8 @@ describe('App', () => {
     expect(screen.getByText('AI AWS Solutions Architect')).toBeInTheDocument();
   });
 
-  it('renders counter button', () => {
+  it('renders main description', () => {
     render(<App />);
-    expect(
-      screen.getByRole('button', { name: /count is 0/i })
-    ).toBeInTheDocument();
+    expect(screen.getByText(/Transform Your Ideas into AWS Solutions/i)).toBeInTheDocument();
   });
 });

@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { devtools } from 'zustand/middleware';
-import type { solutions, flashcards, analysisSessions } from '@/db';
+import type { solutions, flashcards, analysisSessions } from '@/db/schema';
 
 type Solution = typeof solutions.$inferSelect;
 type Flashcard = typeof flashcards.$inferSelect;

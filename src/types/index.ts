@@ -3,7 +3,7 @@ export type {
   solutions as Solution,
   flashcards as Flashcard,
   analysisSessions as AnalysisSession,
-} from '@/db';
+} from '@/db/schema';
 
 // AI Response Types
 export interface AWSService {

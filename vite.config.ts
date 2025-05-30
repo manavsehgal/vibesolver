@@ -4,6 +4,10 @@ import { VitePWA } from 'vite-plugin-pwa';
 import path from 'path';
 
 export default defineConfig({
+  define: {
+    // Ensure Node.js modules are not included in browser bundle
+    global: 'globalThis',
+  },
   plugins: [
     react(),
     VitePWA({
@@ -54,6 +58,11 @@ export default defineConfig({
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),
+      // Redirect database imports to browser-compatible mock
+      '@/db$': path.resolve(__dirname, './src/db/browser-mock.ts'),
     },
+  },
+  optimizeDeps: {
+    exclude: ['better-sqlite3'],
   },
 });

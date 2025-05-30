@@ -24,6 +24,13 @@ pnpm test:ui          # Run tests with Vitest UI
 pnpm db:generate      # Generate Drizzle migrations
 pnpm db:push          # Apply schema changes to SQLite database
 pnpm db:studio        # Open Drizzle Studio for database inspection
+
+# Code Quality Metrics
+
+pnpm metrics            # Generate initial metrics report
+pnpm metrics:summary    # View quick summary
+pnpm metrics:compare    # Compare changes over time
+
 ```
 
 ## Architecture

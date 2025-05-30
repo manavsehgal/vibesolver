@@ -13,7 +13,11 @@
     "test:ui": "vitest --ui",
     "db:generate": "drizzle-kit generate",
     "db:push": "drizzle-kit push",
-    "db:studio": "drizzle-kit studio"
+    "db:studio": "drizzle-kit studio",
+    "metrics": "node scripts/collect-metrics.js",
+    "metrics:summary": "node scripts/metrics-summary.js",
+    "metrics:compare": "node scripts/compare-metrics.js",
+    "metrics:watch": "node scripts/collect-metrics.js && echo 'Report generated! Check reports/ folder'"
   },
   "dependencies": {
     "@ai-sdk/anthropic": "^1.2.12",
@@ -27,12 +31,10 @@
     "postcss": "^8.5.4",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
-    "tailwindcss": "^4.1.8",
     "zod": "^3.25.41",
     "zustand": "^5.0.5"
   },
   "devDependencies": {
-    "@tailwindcss/postcss": "^4.1.8",
     "@testing-library/jest-dom": "^6.6.3",
     "@testing-library/react": "^16.3.0",
     "@types/better-sqlite3": "^7.6.13",
@@ -51,6 +53,7 @@
     "eslint-plugin-react-refresh": "^0.4.5",
     "jsdom": "^26.1.0",
     "prettier": "^3.5.3",
+    "tailwindcss": "^3.4.0",
     "typescript": "^5.2.2",
     "vite": "^5.0.8",
     "vite-plugin-pwa": "^1.0.0",
