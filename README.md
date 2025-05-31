@@ -22,6 +22,9 @@
 
 ---
 
+### Get 📙 **Vibe AWS** companion book free on [Leanpub](https://leanpub.com/vibeaws). 
+#### Walk through how this project was vibe coded.
+
 ## 🚀 What is VibeSolver?
 
 VibeSolver is a **production-ready desktop application** that functions as an AI twin of an AWS Solutions Architect. It helps you **reimagine what's possible** for your business by generating production-ready AWS architectures from natural language descriptions. Built with cutting-edge AI and modern web technologies using vibe coding principles, VibeSolver eliminates the traditional barriers between business requirements and technical implementation.
