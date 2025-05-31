@@ -3,4 +3,8 @@ export { Layout } from './Layout';
 export { RequirementsForm } from './RequirementsForm';
 export { SolutionDisplay } from './SolutionDisplay';
 export { ArchitectureVisualization } from './ArchitectureVisualization';
+export { FlashcardViewer, FlashcardGenerator } from './FlashcardViewer';
+export { WhatIfAnalysis, AnalysisResults } from './WhatIfAnalysis';
+export { SolutionModification } from './SolutionModification';
+export { SolutionExplanation } from './SolutionExplanation';
 export * from './ui';

@@ -8,6 +8,22 @@ vi.mock('@/hooks/useAI', () => ({
     mutateAsync: vi.fn(),
     isPending: false,
   }),
+  useGenerateFlashcards: () => ({
+    mutateAsync: vi.fn(),
+    isPending: false,
+  }),
+  useWhatIfAnalysis: () => ({
+    mutateAsync: vi.fn(),
+    isPending: false,
+  }),
+  useModifySolution: () => ({
+    mutateAsync: vi.fn(),
+    isPending: false,
+  }),
+  useExplainSolution: () => ({
+    mutateAsync: vi.fn(),
+    isPending: false,
+  }),
 }));
 
 vi.mock('@/hooks/useSolutions', () => ({
