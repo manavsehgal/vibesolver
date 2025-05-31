@@ -1,9 +1,26 @@
-import { anthropic } from '@ai-sdk/anthropic';
+import { createAnthropic } from '@ai-sdk/anthropic';
 import { generateObject, generateText } from 'ai';
 import { z } from 'zod';
 
+// Check if we're in production mode (using local server on port 3000)
+const isProduction = window.location.port === '3000';
+
+// For production, we'll use the local API proxy
+// For development, fall back to direct API calls if needed
+const apiKey = isProduction ? 'proxy' : (import.meta as any).env?.VITE_ANTHROPIC_API_KEY;
+
+if (!apiKey && !isProduction) {
+  console.warn('No API key configured, AI features will use mock data');
+}
+
+// Create anthropic provider
+const anthropic = apiKey ? createAnthropic({
+  apiKey: apiKey,
+  baseURL: isProduction ? `${window.location.origin}/api` : undefined,
+}) : null;
+
 // Anthropic model configuration
-const model = anthropic('claude-3-sonnet-20241022');
+const model = anthropic ? anthropic('claude-sonnet-4-20250514') : null;
 
 // Schemas for structured AI responses
 export const awsSolutionSchema = z.object({
@@ -58,6 +75,10 @@ export const whatIfAnalysisSchema = z.object({
 
 // AI Service Functions
 export async function generateAWSSolution(requirements: string) {
+  if (!model) {
+    throw new Error('AI model not configured');
+  }
+  
   try {
     const result = await generateObject({
       model,
@@ -87,6 +108,10 @@ export async function generateFlashcards(
   solutionData: string,
   count: number = 5
 ) {
+  if (!model) {
+    throw new Error('AI model not configured');
+  }
+  
   try {
     const result = await generateObject({
       model,
@@ -116,6 +141,10 @@ export async function performWhatIfAnalysis(
   solutionData: string,
   criteria: string[]
 ) {
+  if (!model) {
+    throw new Error('AI model not configured');
+  }
+  
   try {
     const result = await generateObject({
       model,
@@ -145,6 +174,10 @@ export async function modifySolution(
   currentSolution: string,
   modificationRequest: string
 ) {
+  if (!model) {
+    throw new Error('AI model not configured');
+  }
+  
   try {
     const result = await generateObject({
       model,
@@ -166,6 +199,10 @@ Update the solution while maintaining AWS Well-Architected Framework principles.
 }
 
 export async function explainSolution(solutionData: string) {
+  if (!model) {
+    throw new Error('AI model not configured');
+  }
+  
   try {
     const result = await generateText({
       model,

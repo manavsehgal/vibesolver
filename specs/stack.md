@@ -20,6 +20,7 @@ Ultrathink to recommend a minimal technical stack for an app which meets the fol
 - **Node.js** (latest LTS) + **pnpm** - Excellent Claude support, vast ecosystem, fast package management
 - **Vite** - Lightning-fast dev server, minimal config, excellent TypeScript support
 - **TypeScript** (strict mode) - Type safety with minimal overhead, Claude generates high-quality TS code
+- **Express.js** - Production server with API proxy capabilities for local-first deployment
 
 **Frontend:**
 
@@ -36,6 +37,7 @@ Ultrathink to recommend a minimal technical stack for an app which meets the fol
 **AI SDK:**
 
 - **Vercel AI SDK** - Unified interface for multiple providers, streaming support, React hooks
+- **Express API Proxy** - Local proxy server to solve CORS issues with Anthropic API calls
 
 ### State & Data Management
 

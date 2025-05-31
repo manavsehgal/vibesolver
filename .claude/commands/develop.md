@@ -1,1 +1,1 @@
-Read the sprints/ folder to identify the latest sprint. Review the product code generated so far. Continue developing the product based on the latest spring plan.
+Read the sprints/ folder to identify the latest sprint. Review the product code generated so far. Continue developing the product based on the latest spring plan. If roadmap features were completed then mark them completed in specs/roadmap.md

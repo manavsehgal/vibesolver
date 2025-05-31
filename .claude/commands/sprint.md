@@ -3,6 +3,7 @@ Ultrathink to generate the next VibeSolver project sprint using this streamlined
 1. ANALYSIS PHASE:
 
    - IMPORTANT: Read and follow the @specs/ folder for understanding the product vision, design requirements, technical stack, and roadmap if it exists.
+   - IMPORTANT: Prioritize any features mentioned incomplete in the roadmap.
    - Review files in sprints/ folder if it exists to understand progression and numbering
    - Review the project code to understand the state of the project
    - Review CLAUDE.md if available to understand code generation guidance

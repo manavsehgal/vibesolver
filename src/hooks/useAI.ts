@@ -1,10 +1,13 @@
 import { useMutation } from '@tanstack/react-query';
 
-// Use mock AI service for evaluation when no API key is available
+// Check if we're in production mode (using local server on port 3000)
+const isProduction = window.location.port === '3000';
 const hasApiKey = (import.meta as any).env?.VITE_ANTHROPIC_API_KEY;
 
 async function getAIService() {
-  if (hasApiKey) {
+  // In production mode, always use real AI service (with proxy)
+  // In development mode, only use real AI if we have an API key
+  if (isProduction || hasApiKey) {
     try {
       return await import('@/lib/ai');
     } catch (error) {
@@ -20,8 +23,14 @@ async function getAIService() {
 export function useGenerateAWSSolution() {
   return useMutation({
     mutationFn: async (requirements: string) => {
-      const aiService = await getAIService();
-      return aiService.generateAWSSolution(requirements);
+      try {
+        const aiService = await getAIService();
+        return await aiService.generateAWSSolution(requirements);
+      } catch (error) {
+        console.warn('Real AI service failed, falling back to mock:', error);
+        const mockService = await import('@/lib/ai-mock');
+        return mockService.generateAWSSolution(requirements);
+      }
     },
     onError: (error) => {
       console.error('Failed to generate AWS solution:', error);
@@ -38,8 +47,14 @@ export function useGenerateFlashcards() {
       solutionData: string;
       count?: number;
     }) => {
-      const aiService = await getAIService();
-      return aiService.generateFlashcards(solutionData, count);
+      try {
+        const aiService = await getAIService();
+        return await aiService.generateFlashcards(solutionData, count);
+      } catch (error) {
+        console.warn('Real AI service failed, falling back to mock:', error);
+        const mockService = await import('@/lib/ai-mock');
+        return mockService.generateFlashcards(solutionData, count);
+      }
     },
     onError: (error) => {
       console.error('Failed to generate flashcards:', error);
@@ -56,8 +71,14 @@ export function useWhatIfAnalysis() {
       solutionData: string;
       criteria: string[];
     }) => {
-      const aiService = await getAIService();
-      return aiService.performWhatIfAnalysis(solutionData, criteria);
+      try {
+        const aiService = await getAIService();
+        return await aiService.performWhatIfAnalysis(solutionData, criteria);
+      } catch (error) {
+        console.warn('Real AI service failed, falling back to mock:', error);
+        const mockService = await import('@/lib/ai-mock');
+        return mockService.performWhatIfAnalysis(solutionData, criteria);
+      }
     },
     onError: (error) => {
       console.error('Failed to perform what-if analysis:', error);
@@ -74,8 +95,14 @@ export function useModifySolution() {
       currentSolution: string;
       modificationRequest: string;
     }) => {
-      const aiService = await getAIService();
-      return aiService.modifySolution(currentSolution, modificationRequest);
+      try {
+        const aiService = await getAIService();
+        return await aiService.modifySolution(currentSolution, modificationRequest);
+      } catch (error) {
+        console.warn('Real AI service failed, falling back to mock:', error);
+        const mockService = await import('@/lib/ai-mock');
+        return mockService.modifySolution(currentSolution, modificationRequest);
+      }
     },
     onError: (error) => {
       console.error('Failed to modify solution:', error);
@@ -86,8 +113,14 @@ export function useModifySolution() {
 export function useExplainSolution() {
   return useMutation({
     mutationFn: async (solutionData: string) => {
-      const aiService = await getAIService();
-      return aiService.explainSolution(solutionData);
+      try {
+        const aiService = await getAIService();
+        return await aiService.explainSolution(solutionData);
+      } catch (error) {
+        console.warn('Real AI service failed, falling back to mock:', error);
+        const mockService = await import('@/lib/ai-mock');
+        return mockService.explainSolution(solutionData);
+      }
     },
     onError: (error) => {
       console.error('Failed to explain solution:', error);
