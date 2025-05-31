@@ -168,6 +168,7 @@ export function ArchitectureVisualization({
             style={{
               transform: `translate(${pan.x}px, ${pan.y}px) scale(${scale})`
             }}
+            data-architecture-canvas
           >
             {/* Grid background */}
             <div 

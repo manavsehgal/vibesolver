@@ -42,6 +42,15 @@ vi.mock('./components/ui/Toast', () => ({
   ToastContainer: () => null,
 }));
 
+vi.mock('@/stores/solutions', () => ({
+  useSolutionStore: () => ({
+    addSolution: vi.fn(),
+    solutions: [],
+    currentSolution: null,
+    setCurrentSolution: vi.fn(),
+  }),
+}));
+
 describe('App', () => {
   it('renders VibeSolver heading', () => {
     render(<App />);

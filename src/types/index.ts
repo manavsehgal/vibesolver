@@ -1,9 +1,21 @@
-// Re-export database types
-export type {
-  solutions as Solution,
-  flashcards as Flashcard,
-  analysisSessions as AnalysisSession,
+// Database types
+import type { 
+  solutions,
+  flashcards,
+  analysisSessions,
+  projects,
+  solutionProjects,
+  exportHistory,
+  tags,
 } from '@/db/schema';
+
+export type Solution = typeof solutions.$inferSelect;
+export type Flashcard = typeof flashcards.$inferSelect;
+export type AnalysisSession = typeof analysisSessions.$inferSelect;
+export type Project = typeof projects.$inferSelect;
+export type SolutionProject = typeof solutionProjects.$inferSelect;
+export type ExportHistory = typeof exportHistory.$inferSelect;
+export type Tag = typeof tags.$inferSelect;
 
 // AI Response Types
 export interface AWSService {
@@ -69,4 +81,65 @@ export interface Toast {
   message: string;
   type: 'success' | 'error' | 'info' | 'warning';
   duration?: number;
+}
+
+// Export Types
+export type ExportFormat = 'pdf' | 'png' | 'svg' | 'json' | 'yaml' | 'markdown' | 'terraform' | 'cloudformation';
+
+export interface ExportOptions {
+  format: ExportFormat;
+  includeArchitecture: boolean;
+  includeDetails: boolean;
+  includeRecommendations: boolean;
+  includeCostAnalysis: boolean;
+  quality?: 'low' | 'medium' | 'high';
+  pageSize?: 'A4' | 'letter' | 'legal';
+  orientation?: 'portrait' | 'landscape';
+}
+
+export interface ExportResult {
+  success: boolean;
+  filename?: string;
+  data?: Blob | string;
+  error?: string;
+}
+
+// Solution Management Types
+export interface SolutionFilter {
+  search?: string;
+  tags?: string[];
+  projects?: string[];
+  status?: string[];
+  dateRange?: {
+    start: Date;
+    end: Date;
+  };
+  costRange?: {
+    min: number;
+    max: number;
+  };
+  awsServices?: string[];
+}
+
+export interface SolutionSort {
+  field: 'title' | 'createdAt' | 'updatedAt' | 'costEstimate' | 'lastAccessedAt';
+  direction: 'asc' | 'desc';
+}
+
+export interface SolutionLibraryView {
+  mode: 'grid' | 'list';
+  filter: SolutionFilter;
+  sort: SolutionSort;
+  selectedIds: string[];
+}
+
+// Sharing Types
+export interface ShareableLink {
+  id: string;
+  solutionId: string;
+  expiresAt?: Date;
+  accessCount: number;
+  maxAccess?: number;
+  isPublic: boolean;
+  createdAt: Date;
 }

@@ -13,9 +13,7 @@ export default defineConfig({
     VitePWA({
       registerType: 'autoUpdate',
       includeAssets: [
-        'favicon.ico',
-        'apple-touch-icon.png',
-        'safari-pinned-tab.svg',
+        'vite.svg',
       ],
       manifest: {
         name: 'VibeSolver - AI AWS Solutions Architect',
@@ -30,14 +28,14 @@ export default defineConfig({
         start_url: '/',
         icons: [
           {
-            src: 'pwa-192x192.png',
+            src: 'vite.svg',
             sizes: '192x192',
-            type: 'image/png',
+            type: 'image/svg+xml',
           },
           {
-            src: 'pwa-512x512.png',
+            src: 'vite.svg',
             sizes: '512x512',
-            type: 'image/png',
+            type: 'image/svg+xml',
           },
         ],
       },
@@ -59,10 +57,41 @@ export default defineConfig({
     alias: {
       '@': path.resolve(__dirname, './src'),
       // Redirect database imports to browser-compatible mock
-      '@/db$': path.resolve(__dirname, './src/db/browser-mock.ts'),
+      '@/db': path.resolve(__dirname, './src/db/browser-mock.ts'),
+      '@/db/index': path.resolve(__dirname, './src/db/browser-mock.ts'),
+    },
+  },
+  server: {
+    fs: {
+      strict: false,
     },
   },
   optimizeDeps: {
     exclude: ['better-sqlite3'],
+    include: ['@ai-sdk/anthropic', 'ai'],
+  },
+  build: {
+    rollupOptions: {
+      external: [
+        'better-sqlite3',
+        'fs',
+        'path',
+        'util',
+        'node:crypto',
+        'node:fs',
+        'bindings'
+      ],
+      output: {
+        globals: {
+          'better-sqlite3': 'Database',
+          'fs': 'fs',
+          'path': 'path',
+          'util': 'util',
+          'node:crypto': 'crypto',
+          'node:fs': 'fs',
+          'bindings': 'bindings'
+        }
+      }
+    }
   },
 });

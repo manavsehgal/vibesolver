@@ -54,3 +54,22 @@ pnpm serve:prod
 
 [✅] Fix Flashcards generation. Currently it only generates the same two flashcards with answers, spacebar not working to flip and instead it only shows Easy, Medium, Hard tags. When Generate Flashcards is clicked follow error message appears - Anthropic API error: 400 {"type":"error","error":{"type":"invalid_request_error","message":"tools.0.custom.input_schema.type: Input should be 'object'"}}
 
+[✅] When Save Solution button is clicked instead of modal dialog remain consistent ad use notifications like used when Generate Solution is clicked
+
+[✅] Clicking solutions library after saving a solution does not show any saved solutions
+
+[✅] Solutions menu on top right does not click through to solutions library
+
+[✅] History menu on top right does not click through
+
+[✅] Help menu on top right does not click through
+
+[ ] When Save Solution is clicked I get this error: hook.js:608 Failed to save solution: TypeError: Failed to resolve module specifier "better-sqlite3". Relative references must start with either "/", "./", or "../".
+
+[ ] In architecture diagram canvas the click-hold canvas and drag does not pan the canvas along with the diagram.
+
+[ ] Redraw should randomize different strategies to redraw a better laid out diagram.
+
+[ ] Reset should not only reset the location and zoom level of the diagram but also revert to the original way it was drawn
+
+[ ] Fit should fit the diagram edge to edge canvas width-wize (with equal padding on left, right) and top aligned to canvas.

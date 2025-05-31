@@ -3,6 +3,7 @@ import { generateObject, generateText } from 'ai';
 import { z } from 'zod';
 
 // Check if we're in production mode (using local server on port 3000)
+// Note: Vite dev server runs on 5173, production proxy runs on 3000
 const isProduction = window.location.port === '3000';
 
 // For production, we'll use the local API proxy

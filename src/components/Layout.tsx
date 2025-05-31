@@ -18,26 +18,56 @@ export function Layout({ children }: LayoutProps) {
 }
 
 function Header() {
+  const currentPath = window.location.pathname;
+  
+  const navigateTo = (path: string) => {
+    window.location.href = path;
+  };
+
   return (
     <header className="bg-white border-b border-gray-200 shadow-sm">
       <div className="container mx-auto px-4 py-4">
         <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-3">
+          <button 
+            onClick={() => navigateTo('/')}
+            className="flex items-center space-x-3 hover:opacity-80 transition-opacity"
+          >
             <div className="text-2xl">☁️</div>
             <div>
               <h1 className="text-xl font-bold text-gray-900">VibeSolver</h1>
               <p className="text-sm text-gray-600">AI AWS Solutions Architect</p>
             </div>
-          </div>
+          </button>
           
           <nav className="flex items-center space-x-6">
-            <button className="text-gray-600 hover:text-gray-900 transition-colors">
+            <button 
+              onClick={() => navigateTo('/library')}
+              className={`transition-colors ${
+                currentPath === '/library' 
+                  ? 'text-blue-600 font-medium' 
+                  : 'text-gray-600 hover:text-gray-900'
+              }`}
+            >
               Solutions
             </button>
-            <button className="text-gray-600 hover:text-gray-900 transition-colors">
+            <button 
+              onClick={() => navigateTo('/history')}
+              className={`transition-colors ${
+                currentPath === '/history' 
+                  ? 'text-blue-600 font-medium' 
+                  : 'text-gray-600 hover:text-gray-900'
+              }`}
+            >
               History
             </button>
-            <button className="text-gray-600 hover:text-gray-900 transition-colors">
+            <button 
+              onClick={() => navigateTo('/help')}
+              className={`transition-colors ${
+                currentPath === '/help' 
+                  ? 'text-blue-600 font-medium' 
+                  : 'text-gray-600 hover:text-gray-900'
+              }`}
+            >
               Help
             </button>
           </nav>

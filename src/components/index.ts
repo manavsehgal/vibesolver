@@ -7,4 +7,8 @@ export { FlashcardViewer, FlashcardGenerator } from './FlashcardViewer';
 export { WhatIfAnalysis, AnalysisResults } from './WhatIfAnalysis';
 export { SolutionModification } from './SolutionModification';
 export { SolutionExplanation } from './SolutionExplanation';
+export { SolutionLibrary } from './SolutionLibrary';
+export { SolutionCard } from './SolutionCard';
+export { SolutionFilters } from './SolutionFilters';
+export { ExportModal } from './ExportModal';
 export * from './ui';

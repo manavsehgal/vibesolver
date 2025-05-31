@@ -170,18 +170,30 @@ app.use(express.static(path.join(__dirname, 'dist'), {
   setHeaders: (res, filePath) => {
     // Set proper MIME type for JavaScript modules
     if (filePath.endsWith('.js')) {
-      res.setHeader('Content-Type', 'application/javascript');
-      res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
-      res.setHeader('Pragma', 'no-cache');
-      res.setHeader('Expires', '0');
+      res.setHeader('Content-Type', 'application/javascript; charset=utf-8');
+      res.setHeader('Cache-Control', 'public, max-age=31536000');
     }
     // Set proper MIME type for CSS files
     else if (filePath.endsWith('.css')) {
-      res.setHeader('Content-Type', 'text/css');
+      res.setHeader('Content-Type', 'text/css; charset=utf-8');
+      res.setHeader('Cache-Control', 'public, max-age=31536000');
     }
     // Set proper MIME type for JSON files
     else if (filePath.endsWith('.json')) {
-      res.setHeader('Content-Type', 'application/json');
+      res.setHeader('Content-Type', 'application/json; charset=utf-8');
+    }
+    // Set proper MIME type for SVG files
+    else if (filePath.endsWith('.svg')) {
+      res.setHeader('Content-Type', 'image/svg+xml; charset=utf-8');
+    }
+    // Set proper MIME type for PNG files
+    else if (filePath.endsWith('.png')) {
+      res.setHeader('Content-Type', 'image/png');
+    }
+    // Set proper MIME type for HTML files
+    else if (filePath.endsWith('.html')) {
+      res.setHeader('Content-Type', 'text/html; charset=utf-8');
+      res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
     }
   }
 }));
@@ -205,11 +217,32 @@ app.use((error, req, res, next) => {
   });
 });
 
+// Start server with error handling
+const server = app.listen(port, () => {
+  console.log(`🚀 VibeSolver production server running on http://localhost:${port}`);
+  console.log(`📊 Health check: http://localhost:${port}/api/health`);
+  console.log(`🤖 API proxy: http://localhost:${port}/api/messages`);
+  console.log(`🔑 API Key configured: ${!!process.env.ANTHROPIC_API_KEY}`);
+});
+
+server.on('error', (err) => {
+  if (err.code === 'EADDRINUSE') {
+    console.error(`❌ Port ${port} is already in use. Please try a different port or stop the process using port ${port}.`);
+    console.log('To find the process using this port, run: lsof -ti:' + port);
+    console.log('To kill the process, run: kill $(lsof -ti:' + port + ')');
+    process.exit(1);
+  } else {
+    console.error('❌ Server error:', err);
+    process.exit(1);
+  }
+});
+
 // Graceful shutdown handling
 process.on('SIGTERM', () => {
   console.log('SIGTERM received, shutting down gracefully');
   server.close(() => {
     console.log('Process terminated');
+    process.exit(0);
   });
 });
 
@@ -217,14 +250,8 @@ process.on('SIGINT', () => {
   console.log('SIGINT received, shutting down gracefully');
   server.close(() => {
     console.log('Process terminated');
+    process.exit(0);
   });
-});
-
-const server = app.listen(port, () => {
-  console.log(`🚀 VibeSolver production server running on http://localhost:${port}`);
-  console.log(`📊 Health check: http://localhost:${port}/api/health`);
-  console.log(`🤖 API proxy: http://localhost:${port}/api/anthropic`);
-  console.log(`🔑 API Key configured: ${!!process.env.ANTHROPIC_API_KEY}`);
 });
 
 export default app;

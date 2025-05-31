@@ -7,13 +7,18 @@ import { FlashcardViewer, FlashcardGenerator } from './FlashcardViewer';
 import { WhatIfAnalysis, AnalysisResults } from './WhatIfAnalysis';
 import { SolutionModification } from './SolutionModification';
 import { SolutionExplanation } from './SolutionExplanation';
-import { Card, CardContent, LoadingSpinner } from './ui';
+import { Card, CardContent, LoadingSpinner, Button } from './ui';
 import { useGenerateFlashcards, useWhatIfAnalysis, useModifySolution, useExplainSolution } from '@/hooks/useAI';
+import { useSolutionStore } from '@/stores/solutions';
+import { useToast } from '@/hooks/useToast';
 import { type AWSSolutionResponse, type FlashcardResponse, type WhatIfAnalysisResponse } from '@/types';
+import { Save } from 'lucide-react';
 
 export function VibeSolver() {
   const [currentSolution, setCurrentSolution] = useState<AWSSolutionResponse | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
+  const { saveSolution, isSaving } = useSolutionStore();
+  const { showToast } = useToast();
   
   // AI feature states
   const [showFlashcardGenerator, setShowFlashcardGenerator] = useState(false);
@@ -116,6 +121,45 @@ export function VibeSolver() {
     }
   };
 
+  const handleSaveSolution = async () => {
+    if (!currentSolution) return;
+
+    const solutionToSave = {
+      id: `solution-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+      title: currentSolution.title,
+      description: currentSolution.description,
+      awsServices: JSON.stringify(currentSolution.awsServices),
+      architecture: JSON.stringify(currentSolution.architecture),
+      requirements: 'Generated from VibeSolver', // TODO: Store actual requirements
+      costEstimate: currentSolution.costEstimate || null,
+      recommendations: JSON.stringify(currentSolution.recommendations),
+      tags: JSON.stringify(['generated']),
+      status: 'draft' as const,
+      version: 1,
+      parentId: null,
+      isTemplate: false,
+      isFavorite: false,
+      lastAccessedAt: new Date(),
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+
+    try {
+      await saveSolution(solutionToSave);
+      showToast({
+        type: 'success',
+        title: 'Solution Saved',
+        message: 'Your AWS solution has been saved to the library successfully.',
+      });
+    } catch (error) {
+      showToast({
+        type: 'error',
+        title: 'Save Failed',
+        message: 'Failed to save solution. Please try again.',
+      });
+    }
+  };
+
   return (
     <Layout>
       <div className="max-w-7xl mx-auto space-y-8">
@@ -150,12 +194,29 @@ export function VibeSolver() {
               <h2 className="text-2xl font-bold text-gray-900">
                 Your AWS Solution
               </h2>
-              <button
-                onClick={handleNewSolution}
-                className="text-blue-600 hover:text-blue-700 font-medium"
-              >
-                ← Generate New Solution
-              </button>
+              <div className="flex gap-4">
+                <Button
+                  onClick={handleSaveSolution}
+                  variant="outline"
+                  className="text-green-600 border-green-600 hover:bg-green-50"
+                  disabled={isSaving}
+                >
+                  <Save className="w-4 h-4 mr-2" />
+                  {isSaving ? 'Saving...' : 'Save Solution'}
+                </Button>
+                <button
+                  onClick={() => window.location.href = '/library'}
+                  className="text-blue-600 hover:text-blue-700 font-medium"
+                >
+                  📚 Solution Library
+                </button>
+                <button
+                  onClick={handleNewSolution}
+                  className="text-blue-600 hover:text-blue-700 font-medium"
+                >
+                  ← Generate New Solution
+                </button>
+              </div>
             </div>
             
             <SolutionDisplay 

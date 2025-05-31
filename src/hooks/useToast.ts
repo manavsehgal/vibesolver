@@ -4,6 +4,7 @@ export interface Toast {
   id: string;
   message: string;
   type: 'success' | 'error' | 'info' | 'warning';
+  title?: string;
   duration?: number;
 }
 
@@ -45,6 +46,8 @@ export function useToast() {
   const { addToast } = useToastStore();
   
   return {
+    showToast: (toast: { type: 'success' | 'error' | 'info' | 'warning'; title?: string; message: string; duration?: number }) => 
+      addToast(toast),
     success: (message: string, duration?: number) => 
       addToast({ message, type: 'success', duration }),
     error: (message: string, duration?: number) => 

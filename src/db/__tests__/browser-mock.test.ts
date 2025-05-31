@@ -23,10 +23,16 @@ describe('Browser Mock Database', () => {
       };
 
       const data = {
+        id: crypto.randomUUID(),
         title: 'Test Solution',
         description: 'Test description',
         requirements: 'Test requirements',
-        solutionData,
+        awsServices: JSON.stringify(solutionData.awsServices),
+        architecture: solutionData.architecture ? JSON.stringify(solutionData.architecture) : null,
+        costEstimate: solutionData.costEstimate,
+        recommendations: solutionData.recommendations ? JSON.stringify(solutionData.recommendations) : null,
+        createdAt: new Date(),
+        updatedAt: new Date(),
       };
 
       const result = await mockDb.solutions.insert(data);
@@ -35,7 +41,7 @@ describe('Browser Mock Database', () => {
         title: 'Test Solution',
         description: 'Test description',
         requirements: 'Test requirements',
-        solutionData,
+        awsServices: JSON.stringify(solutionData.awsServices),
       });
       expect(result.id).toBeDefined();
       expect(result.createdAt).toBeInstanceOf(Date);
@@ -59,17 +65,23 @@ describe('Browser Mock Database', () => {
       };
 
       await mockDb.solutions.insert({
+        id: crypto.randomUUID(),
         title: 'Solution 1',
         description: 'Description 1',
         requirements: 'Requirements 1',
-        solutionData,
+        awsServices: JSON.stringify(solutionData.awsServices),
+        createdAt: new Date(),
+        updatedAt: new Date(),
       });
 
       await mockDb.solutions.insert({
+        id: crypto.randomUUID(),
         title: 'Solution 2',
         description: 'Description 2',
         requirements: 'Requirements 2',
-        solutionData,
+        awsServices: JSON.stringify(solutionData.awsServices),
+        createdAt: new Date(),
+        updatedAt: new Date(),
       });
 
       const solutions = await mockDb.solutions.findMany();
@@ -94,10 +106,13 @@ describe('Browser Mock Database', () => {
       };
 
       const inserted = await mockDb.solutions.insert({
+        id: crypto.randomUUID(),
         title: 'Test Solution',
         description: 'Test description',
         requirements: 'Test requirements',
-        solutionData,
+        awsServices: JSON.stringify(solutionData.awsServices),
+        createdAt: new Date(),
+        updatedAt: new Date(),
       });
 
       const found = await mockDb.solutions.findFirst({ id: inserted.id });
@@ -122,10 +137,13 @@ describe('Browser Mock Database', () => {
       };
 
       const inserted = await mockDb.solutions.insert({
+        id: crypto.randomUUID(),
         title: 'Test Solution',
         description: 'Test description',
         requirements: 'Test requirements',
-        solutionData,
+        awsServices: JSON.stringify(solutionData.awsServices),
+        createdAt: new Date(),
+        updatedAt: new Date(),
       });
 
       const deleted = await mockDb.solutions.delete({ id: inserted.id });

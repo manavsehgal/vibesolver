@@ -47,6 +47,15 @@ vi.mock('@/hooks/useToast', () => ({
   }),
 }));
 
+vi.mock('@/stores/solutions', () => ({
+  useSolutionStore: () => ({
+    addSolution: vi.fn(),
+    solutions: [],
+    currentSolution: null,
+    setCurrentSolution: vi.fn(),
+  }),
+}));
+
 // Mock ToastContainer component
 vi.mock('../ui/Toast', () => ({
   ToastContainer: () => null,

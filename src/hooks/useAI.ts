@@ -1,6 +1,7 @@
 import { useMutation } from '@tanstack/react-query';
 
 // Check if we're in production mode (using local server on port 3000)
+// Note: Vite dev server runs on 5173, production proxy runs on 3000
 const isProduction = window.location.port === '3000';
 const hasApiKey = (import.meta as any).env?.VITE_ANTHROPIC_API_KEY;
 
