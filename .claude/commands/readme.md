@@ -1,1 +1,1 @@
-Create or update the README.md of VibeSolver product. Review the existing README.md if available. Update or write it based on project code, sprints/ folder, specs/ folder, and articles/ folder. Create the README.md using similar style as popular GitHub repos.
+Create or update the README.md of VibeSolver product. Review the existing README.md if available. Update or write it based on project code, sprints/ folder, specs/ folder, and articles/ folder. Create or update the README.md using similar style as popular GitHub repos.
