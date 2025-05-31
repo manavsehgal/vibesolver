@@ -1,13 +1,7 @@
 import { create } from 'zustand';
 import { devtools } from 'zustand/middleware';
-import type { solutions, flashcards, analysisSessions, projects, tags } from '@/db/schema';
+import type { Solution, Flashcard, AnalysisSession, Project, Tag } from '@/db/indexeddb';
 import type { SolutionLibraryView, SolutionFilter, SolutionSort } from '@/types';
-
-type Solution = typeof solutions.$inferSelect;
-type Flashcard = typeof flashcards.$inferSelect;
-type AnalysisSession = typeof analysisSessions.$inferSelect;
-type Project = typeof projects.$inferSelect;
-type Tag = typeof tags.$inferSelect;
 
 interface SolutionState {
   // Current state
@@ -34,7 +28,7 @@ interface SolutionState {
   removeSolution: (id: string) => void;
   
   // Solution management actions
-  saveSolution: (solution: Solution) => Promise<void>;
+  saveSolution: (solution: Partial<Solution>) => Promise<Solution>;
   loadSolutions: () => Promise<void>;
   searchSolutions: (query: string) => Promise<Solution[]>;
   toggleFavorite: (id: string) => void;

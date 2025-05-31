@@ -28,6 +28,7 @@
     "ai": "^4.3.16",
     "autoprefixer": "^10.4.21",
     "better-sqlite3": "^11.10.0",
+    "dexie": "^4.0.11",
     "drizzle-orm": "^0.44.0",
     "drizzle-zod": "^0.8.2",
     "html2canvas": "^1.4.1",

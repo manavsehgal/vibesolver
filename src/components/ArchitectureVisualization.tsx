@@ -16,12 +16,14 @@ export function ArchitectureVisualization({
   const [isDragging, setIsDragging] = useState(false);
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
   const [components, setComponents] = useState<ArchitectureComponent[]>(architecture.components);
+  const [originalComponents, setOriginalComponents] = useState<ArchitectureComponent[]>(architecture.components);
   const [selectedComponents, setSelectedComponents] = useState<Set<string>>(new Set());
   const canvasRef = useRef<HTMLDivElement>(null);
   
   // Update components when architecture changes
   useEffect(() => {
     setComponents(architecture.components);
+    setOriginalComponents(architecture.components);
   }, [architecture.components]);
   
   const handleWheel = useCallback((e: React.WheelEvent) => {
@@ -32,7 +34,13 @@ export function ArchitectureVisualization({
   }, [scale]);
   
   const handleMouseDown = useCallback((e: React.MouseEvent) => {
-    if (e.target === e.currentTarget) {
+    // Check if the target is the canvas or the background grid
+    const target = e.target as HTMLElement;
+    const isCanvasArea = target === e.currentTarget || 
+                        target.hasAttribute('data-architecture-canvas') ||
+                        target.classList.contains('opacity-20'); // grid background
+    
+    if (isCanvasArea) {
       setIsDragging(true);
       setDragStart({ x: e.clientX - pan.x, y: e.clientY - pan.y });
       setSelectedComponents(new Set());
@@ -54,7 +62,9 @@ export function ArchitectureVisualization({
   const resetView = useCallback(() => {
     setScale(1);
     setPan({ x: 0, y: 0 });
-  }, []);
+    // Restore original component positions
+    setComponents(originalComponents);
+  }, [originalComponents]);
   
   const zoomIn = useCallback(() => setScale(prev => Math.min(prev * 1.2, 5)), []);
   const zoomOut = useCallback(() => setScale(prev => Math.max(prev / 1.2, 0.1)), []);
@@ -72,37 +82,126 @@ export function ArchitectureVisualization({
     
     if (canvasRef.current) {
       const canvasRect = canvasRef.current.getBoundingClientRect();
-      const scaleX = (canvasRect.width - 100) / contentWidth;
-      const scaleY = (canvasRect.height - 100) / contentHeight;
+      
+      // Use 15% padding for edge-to-edge fitting with proper spacing
+      const paddingPercent = 0.15;
+      const paddingX = canvasRect.width * paddingPercent;
+      const paddingY = canvasRect.height * paddingPercent;
+      
+      const availableWidth = canvasRect.width - (paddingX * 2);
+      const availableHeight = canvasRect.height - (paddingY * 2);
+      
+      const scaleX = availableWidth / contentWidth;
+      const scaleY = availableHeight / contentHeight;
       const newScale = Math.min(scaleX, scaleY, 5);
       
       setScale(newScale);
+      
+      // Center the content with equal padding on left and right, top-aligned
+      const scaledContentWidth = contentWidth * newScale;
+      
       setPan({
-        x: (canvasRect.width - contentWidth * newScale) / 2 - minX * newScale,
-        y: (canvasRect.height - contentHeight * newScale) / 2 - minY * newScale
+        x: (canvasRect.width - scaledContentWidth) / 2 - minX * newScale,
+        y: paddingY - minY * newScale  // Top-aligned with padding
       });
     }
   }, [components]);
 
+  const [layoutStrategy, setLayoutStrategy] = useState<'grid' | 'circular' | 'hierarchical' | 'force'>('grid');
+  
   const redrawLayout = useCallback(() => {
     if (components.length === 0) return;
     
-    // Simple grid layout algorithm
-    const gridSize = Math.ceil(Math.sqrt(components.length));
+    let newComponents: ArchitectureComponent[];
     const spacing = 180;
     
-    const newComponents = components.map((component, index) => {
-      const row = Math.floor(index / gridSize);
-      const col = index % gridSize;
-      
-      return {
-        ...component,
-        position: {
-          x: col * spacing + 50,
-          y: row * spacing + 50
-        }
-      };
-    });
+    // Randomly select a layout strategy for variety
+    const strategies: Array<'grid' | 'circular' | 'hierarchical' | 'force'> = ['grid', 'circular', 'hierarchical', 'force'];
+    const randomStrategy = strategies[Math.floor(Math.random() * strategies.length)];
+    setLayoutStrategy(randomStrategy);
+    
+    switch (randomStrategy) {
+      case 'circular':
+        newComponents = components.map((component, index) => {
+          const angle = (index / components.length) * 2 * Math.PI;
+          const radius = Math.max(150, components.length * 20);
+          const centerX = 300;
+          const centerY = 300;
+          
+          return {
+            ...component,
+            position: {
+              x: centerX + radius * Math.cos(angle),
+              y: centerY + radius * Math.sin(angle)
+            }
+          };
+        });
+        break;
+        
+      case 'hierarchical':
+        // Layer components by type
+        const layers: { [key: string]: ArchitectureComponent[] } = {};
+        components.forEach(comp => {
+          const type = comp.type.toLowerCase();
+          let layer = 'other';
+          if (type.includes('gateway') || type.includes('api')) layer = 'gateway';
+          else if (type.includes('compute') || type.includes('ec2')) layer = 'compute';
+          else if (type.includes('database') || type.includes('storage')) layer = 'data';
+          
+          if (!layers[layer]) layers[layer] = [];
+          layers[layer].push(comp);
+        });
+        
+        const layerOrder = ['gateway', 'compute', 'data', 'other'];
+        let currentY = 50;
+        newComponents = [];
+        
+        layerOrder.forEach(layerName => {
+          if (layers[layerName]) {
+            layers[layerName].forEach((component, index) => {
+              newComponents.push({
+                ...component,
+                position: {
+                  x: index * spacing + 50,
+                  y: currentY
+                }
+              });
+            });
+            currentY += spacing;
+          }
+        });
+        break;
+        
+      case 'force':
+        // Simple force-directed layout simulation
+        newComponents = components.map((component) => {
+          const angle = Math.random() * 2 * Math.PI;
+          const distance = Math.random() * 200 + 100;
+          return {
+            ...component,
+            position: {
+              x: 300 + distance * Math.cos(angle),
+              y: 300 + distance * Math.sin(angle)
+            }
+          };
+        });
+        break;
+        
+      default: // grid
+        const gridSize = Math.ceil(Math.sqrt(components.length));
+        newComponents = components.map((component, index) => {
+          const row = Math.floor(index / gridSize);
+          const col = index % gridSize;
+          
+          return {
+            ...component,
+            position: {
+              x: col * spacing + 50,
+              y: row * spacing + 50
+            }
+          };
+        });
+    }
     
     setComponents(newComponents);
     
@@ -147,7 +246,9 @@ export function ArchitectureVisualization({
             </span>
             <Button variant="outline" size="sm" onClick={zoomIn}>+</Button>
             <Button variant="outline" size="sm" onClick={fitToScreen}>Fit</Button>
-            <Button variant="outline" size="sm" onClick={redrawLayout}>Redraw</Button>
+            <Button variant="outline" size="sm" onClick={redrawLayout} title={`Current layout: ${layoutStrategy}`}>
+              Redraw
+            </Button>
             <Button variant="outline" size="sm" onClick={resetView}>Reset</Button>
           </div>
         </div>
