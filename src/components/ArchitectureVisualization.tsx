@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { Card, CardHeader, CardTitle, CardContent, Button } from './ui';
 import { type Architecture, type ArchitectureComponent } from '@/types';
 
@@ -15,39 +15,97 @@ export function ArchitectureVisualization({
   const [pan, setPan] = useState({ x: 0, y: 0 });
   const [isDragging, setIsDragging] = useState(false);
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
+  const [components, setComponents] = useState<ArchitectureComponent[]>(architecture.components);
+  const [selectedComponents, setSelectedComponents] = useState<Set<string>>(new Set());
   const canvasRef = useRef<HTMLDivElement>(null);
   
-  const handleWheel = (e: React.WheelEvent) => {
+  // Update components when architecture changes
+  useEffect(() => {
+    setComponents(architecture.components);
+  }, [architecture.components]);
+  
+  const handleWheel = useCallback((e: React.WheelEvent) => {
     e.preventDefault();
     const delta = e.deltaY * -0.001;
-    const newScale = Math.min(Math.max(0.25, scale + delta), 3);
+    const newScale = Math.min(Math.max(0.1, scale + delta), 5);
     setScale(newScale);
-  };
+  }, [scale]);
   
-  const handleMouseDown = (e: React.MouseEvent) => {
-    setIsDragging(true);
-    setDragStart({ x: e.clientX - pan.x, y: e.clientY - pan.y });
-  };
+  const handleMouseDown = useCallback((e: React.MouseEvent) => {
+    if (e.target === e.currentTarget) {
+      setIsDragging(true);
+      setDragStart({ x: e.clientX - pan.x, y: e.clientY - pan.y });
+      setSelectedComponents(new Set());
+    }
+  }, [pan]);
   
-  const handleMouseMove = (e: React.MouseEvent) => {
+  const handleMouseMove = useCallback((e: React.MouseEvent) => {
     if (!isDragging) return;
     setPan({
       x: e.clientX - dragStart.x,
       y: e.clientY - dragStart.y
     });
-  };
+  }, [isDragging, dragStart]);
   
-  const handleMouseUp = () => {
+  const handleMouseUp = useCallback(() => {
     setIsDragging(false);
-  };
+  }, []);
   
-  const resetView = () => {
+  const resetView = useCallback(() => {
     setScale(1);
     setPan({ x: 0, y: 0 });
-  };
+  }, []);
   
-  const zoomIn = () => setScale(Math.min(scale * 1.2, 3));
-  const zoomOut = () => setScale(Math.max(scale / 1.2, 0.25));
+  const zoomIn = useCallback(() => setScale(prev => Math.min(prev * 1.2, 5)), []);
+  const zoomOut = useCallback(() => setScale(prev => Math.max(prev / 1.2, 0.1)), []);
+  
+  const fitToScreen = useCallback(() => {
+    if (components.length === 0) return;
+    
+    const minX = Math.min(...components.map(c => c.position.x));
+    const maxX = Math.max(...components.map(c => c.position.x + 128));
+    const minY = Math.min(...components.map(c => c.position.y));
+    const maxY = Math.max(...components.map(c => c.position.y + 64));
+    
+    const contentWidth = maxX - minX;
+    const contentHeight = maxY - minY;
+    
+    if (canvasRef.current) {
+      const canvasRect = canvasRef.current.getBoundingClientRect();
+      const scaleX = (canvasRect.width - 100) / contentWidth;
+      const scaleY = (canvasRect.height - 100) / contentHeight;
+      const newScale = Math.min(scaleX, scaleY, 5);
+      
+      setScale(newScale);
+      setPan({
+        x: (canvasRect.width - contentWidth * newScale) / 2 - minX * newScale,
+        y: (canvasRect.height - contentHeight * newScale) / 2 - minY * newScale
+      });
+    }
+  }, [components]);
+  
+  const handleComponentDrag = useCallback((componentId: string, newPosition: { x: number; y: number }) => {
+    setComponents(prev => prev.map(comp => 
+      comp.id === componentId ? { ...comp, position: newPosition } : comp
+    ));
+  }, []);
+  
+  const handleComponentSelect = useCallback((componentId: string, multiSelect: boolean = false) => {
+    setSelectedComponents(prev => {
+      const newSet = new Set(prev);
+      if (multiSelect) {
+        if (newSet.has(componentId)) {
+          newSet.delete(componentId);
+        } else {
+          newSet.add(componentId);
+        }
+      } else {
+        newSet.clear();
+        newSet.add(componentId);
+      }
+      return newSet;
+    });
+  }, []);
   
   return (
     <Card className={className}>
@@ -60,6 +118,7 @@ export function ArchitectureVisualization({
               {Math.round(scale * 100)}%
             </span>
             <Button variant="outline" size="sm" onClick={zoomIn}>+</Button>
+            <Button variant="outline" size="sm" onClick={fitToScreen}>Fit</Button>
             <Button variant="outline" size="sm" onClick={resetView}>Reset</Button>
           </div>
         </div>
@@ -68,7 +127,7 @@ export function ArchitectureVisualization({
       <CardContent>
         <div 
           ref={canvasRef}
-          className="relative w-full h-96 bg-gray-50 overflow-hidden cursor-grab active:cursor-grabbing"
+          className="relative w-full h-96 bg-gray-50 overflow-hidden cursor-grab active:cursor-grabbing select-none"
           onWheel={handleWheel}
           onMouseDown={handleMouseDown}
           onMouseMove={handleMouseMove}
@@ -99,16 +158,16 @@ export function ArchitectureVisualization({
               style={{ overflow: 'visible' }}
             >
               {architecture.connections.map((connection, index) => {
-                const fromComponent = architecture.components.find(c => c.id === connection.from);
-                const toComponent = architecture.components.find(c => c.id === connection.to);
+                const fromComponent = components.find(c => c.id === connection.from);
+                const toComponent = components.find(c => c.id === connection.to);
                 
                 if (!fromComponent || !toComponent) return null;
                 
                 return (
                   <ConnectionLine
                     key={index}
-                    from={{ x: fromComponent.position.x + 60, y: fromComponent.position.y + 30 }}
-                    to={{ x: toComponent.position.x + 60, y: toComponent.position.y + 30 }}
+                    from={{ x: fromComponent.position.x + 64, y: fromComponent.position.y + 32 }}
+                    to={{ x: toComponent.position.x + 64, y: toComponent.position.y + 32 }}
                     label={connection.label}
                   />
                 );
@@ -116,10 +175,14 @@ export function ArchitectureVisualization({
             </svg>
             
             {/* Components */}
-            {architecture.components.map((component) => (
-              <ArchitectureComponentNode
+            {components.map((component) => (
+              <DraggableArchitectureComponent
                 key={component.id}
                 component={component}
+                isSelected={selectedComponents.has(component.id)}
+                onDrag={handleComponentDrag}
+                onSelect={handleComponentSelect}
+                scale={scale}
               />
             ))}
           </div>
@@ -129,11 +192,24 @@ export function ArchitectureVisualization({
   );
 }
 
-interface ArchitectureComponentNodeProps {
+interface DraggableArchitectureComponentProps {
   component: ArchitectureComponent;
+  isSelected: boolean;
+  onDrag: (componentId: string, newPosition: { x: number; y: number }) => void;
+  onSelect: (componentId: string, multiSelect: boolean) => void;
+  scale: number;
 }
 
-function ArchitectureComponentNode({ component }: ArchitectureComponentNodeProps) {
+function DraggableArchitectureComponent({ 
+  component, 
+  isSelected, 
+  onDrag, 
+  onSelect, 
+  scale 
+}: DraggableArchitectureComponentProps) {
+  const [isDragging, setIsDragging] = useState(false);
+  const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
+  
   const getComponentIcon = (type: string) => {
     const t = type.toLowerCase();
     if (t.includes('database') || t.includes('rds')) return '🗄️';
@@ -160,24 +236,71 @@ function ArchitectureComponentNode({ component }: ArchitectureComponentNodeProps
     return 'bg-gray-100 border-gray-300 text-gray-800';
   };
   
+  const handleMouseDown = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setIsDragging(true);
+    setDragStart({ x: e.clientX, y: e.clientY });
+    
+    onSelect(component.id, e.ctrlKey || e.metaKey);
+  };
+  
+  const handleMouseMove = useCallback((e: MouseEvent) => {
+    if (!isDragging) return;
+    
+    const deltaX = (e.clientX - dragStart.x) / scale;
+    const deltaY = (e.clientY - dragStart.y) / scale;
+    
+    const newPosition = {
+      x: Math.max(0, component.position.x + deltaX),
+      y: Math.max(0, component.position.y + deltaY)
+    };
+    
+    onDrag(component.id, newPosition);
+    setDragStart({ x: e.clientX, y: e.clientY });
+  }, [isDragging, dragStart, scale, component.position, component.id, onDrag]);
+  
+  const handleMouseUp = useCallback(() => {
+    setIsDragging(false);
+  }, []);
+  
+  useEffect(() => {
+    if (isDragging) {
+      document.addEventListener('mousemove', handleMouseMove);
+      document.addEventListener('mouseup', handleMouseUp);
+      
+      return () => {
+        document.removeEventListener('mousemove', handleMouseMove);
+        document.removeEventListener('mouseup', handleMouseUp);
+      };
+    }
+  }, [isDragging, handleMouseMove, handleMouseUp]);
+  
   return (
     <div
       className={`
         absolute w-32 h-16 rounded-lg border-2 flex items-center justify-center
-        shadow-sm hover:shadow-md transition-shadow cursor-pointer
+        shadow-sm hover:shadow-md transition-all cursor-pointer select-none
         ${getComponentColor(component.type)}
+        ${isSelected ? 'ring-2 ring-blue-500 ring-offset-1' : ''}
+        ${isDragging ? 'shadow-lg scale-105 z-50' : 'z-10'}
       `}
       style={{
         left: component.position.x,
         top: component.position.y
       }}
+      onMouseDown={handleMouseDown}
     >
-      <div className="text-center">
+      <div className="text-center pointer-events-none">
         <div className="text-lg mb-1">{getComponentIcon(component.type)}</div>
         <div className="text-xs font-medium leading-tight px-1">
           {component.name}
         </div>
       </div>
+      
+      {/* Selection indicator */}
+      {isSelected && (
+        <div className="absolute -inset-1 border-2 border-blue-500 rounded-lg pointer-events-none" />
+      )}
     </div>
   );
 }
