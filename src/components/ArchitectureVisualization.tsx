@@ -138,7 +138,7 @@ export function ArchitectureVisualization({
         });
         break;
         
-      case 'hierarchical':
+      case 'hierarchical': {
         // Layer components by type
         const layers: { [key: string]: ArchitectureComponent[] } = {};
         components.forEach(comp => {
@@ -171,6 +171,7 @@ export function ArchitectureVisualization({
           }
         });
         break;
+      }
         
       case 'force':
         // Simple force-directed layout simulation
@@ -187,7 +188,7 @@ export function ArchitectureVisualization({
         });
         break;
         
-      default: // grid
+      default: { // grid
         const gridSize = Math.ceil(Math.sqrt(components.length));
         newComponents = components.map((component, index) => {
           const row = Math.floor(index / gridSize);
@@ -201,6 +202,7 @@ export function ArchitectureVisualization({
             }
           };
         });
+      }
     }
     
     setComponents(newComponents);

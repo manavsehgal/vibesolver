@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import { Card, CardContent, Button } from '@/components/ui';
+import { ExportModal } from './ExportModal';
+import { useToast } from '@/hooks/useToast';
 import { 
   Star, 
   Clock, 
@@ -31,6 +33,8 @@ export function SolutionCard({
   onToggleFavorite 
 }: SolutionCardProps) {
   const [showMenu, setShowMenu] = useState(false);
+  const [showExportModal, setShowExportModal] = useState(false);
+  const { showToast } = useToast();
   
   const tags = solution.tags ? JSON.parse(solution.tags) : [];
   const awsServices = solution.awsServices ? JSON.parse(solution.awsServices) : [];
@@ -60,8 +64,46 @@ export function SolutionCard({
       return;
     }
     
-    // Navigate to solution view
-    window.location.href = `/solution/${solution.id}`;
+    // Navigate to solution view with URL parameter
+    window.location.href = `/?solution=${solution.id}`;
+  };
+
+
+  const handleShare = async () => {
+    try {
+      const shareUrl = `${window.location.origin}/?solution=${solution.id}`;
+      const shareData = {
+        title: solution.title,
+        text: solution.description,
+        url: shareUrl
+      };
+
+      // Try native Web Share API first
+      if (navigator.share && navigator.canShare(shareData)) {
+        await navigator.share(shareData);
+        showToast({
+          type: 'success',
+          title: 'Shared Successfully',
+          message: 'Solution shared successfully'
+        });
+      } else {
+        // Fallback to clipboard
+        await navigator.clipboard.writeText(shareUrl);
+        showToast({
+          type: 'success',
+          title: 'Link Copied',
+          message: 'Solution link copied to clipboard'
+        });
+      }
+    } catch (error) {
+      if (error instanceof Error && error.name !== 'AbortError') {
+        showToast({
+          type: 'error',
+          title: 'Share Failed',
+          message: 'Failed to share solution. Please try again.'
+        });
+      }
+    }
   };
 
   const handleMenuAction = (action: string) => {
@@ -69,16 +111,16 @@ export function SolutionCard({
     
     switch (action) {
       case 'edit':
-        window.location.href = `/solution/${solution.id}/edit`;
+        window.location.href = `/?edit=${solution.id}`;
         break;
       case 'duplicate':
         // TODO: Implement duplicate
         break;
       case 'export':
-        // TODO: Implement export
+        setShowExportModal(true);
         break;
       case 'share':
-        // TODO: Implement share
+        handleShare();
         break;
       case 'delete':
         if (confirm('Are you sure you want to delete this solution?')) {
@@ -232,6 +274,14 @@ export function SolutionCard({
             </div>
           )}
         </CardContent>
+        
+        {/* Export Modal */}
+        {showExportModal && (
+          <ExportModal
+            solutionIds={[solution.id]}
+            onClose={() => setShowExportModal(false)}
+          />
+        )}
       </Card>
     );
   }
@@ -382,6 +432,14 @@ export function SolutionCard({
           )}
         </div>
       </CardContent>
+      
+      {/* Export Modal */}
+      {showExportModal && (
+        <ExportModal
+          solutionIds={[solution.id]}
+          onClose={() => setShowExportModal(false)}
+        />
+      )}
     </Card>
   );
 }

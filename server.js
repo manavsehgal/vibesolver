@@ -237,21 +237,53 @@ server.on('error', (err) => {
   }
 });
 
-// Graceful shutdown handling
-process.on('SIGTERM', () => {
-  console.log('SIGTERM received, shutting down gracefully');
-  server.close(() => {
+// Graceful shutdown handling with improved signal management
+let isShuttingDown = false;
+
+const gracefulShutdown = (signal) => {
+  if (isShuttingDown) {
+    console.log(`${signal} received again, force exiting...`);
+    process.exit(1);
+  }
+  
+  isShuttingDown = true;
+  console.log(`${signal} received, shutting down gracefully...`);
+  
+  // Set a timeout to force exit if graceful shutdown takes too long
+  const forceExitTimeout = setTimeout(() => {
+    console.log('Graceful shutdown timed out, force exiting...');
+    process.exit(1);
+  }, 10000); // 10 seconds timeout
+  
+  server.close((err) => {
+    clearTimeout(forceExitTimeout);
+    if (err) {
+      console.error('Error during server shutdown:', err);
+      process.exit(1);
+    }
+    console.log('Server closed successfully');
     console.log('Process terminated');
     process.exit(0);
   });
+  
+  // Close any existing connections after a short delay
+  setTimeout(() => {
+    server.closeAllConnections?.();
+  }, 1000);
+};
+
+process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
+process.on('SIGINT', () => gracefulShutdown('SIGINT'));
+
+// Handle uncaught exceptions and unhandled rejections
+process.on('uncaughtException', (err) => {
+  console.error('Uncaught Exception:', err);
+  gracefulShutdown('UNCAUGHT_EXCEPTION');
 });
 
-process.on('SIGINT', () => {
-  console.log('SIGINT received, shutting down gracefully');
-  server.close(() => {
-    console.log('Process terminated');
-    process.exit(0);
-  });
+process.on('unhandledRejection', (reason, promise) => {
+  console.error('Unhandled Rejection at:', promise, 'reason:', reason);
+  gracefulShutdown('UNHANDLED_REJECTION');
 });
 
 export default app;

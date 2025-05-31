@@ -1,7 +1,6 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import { VibeSolver, SolutionLibrary, Layout } from './components';
-import { HistoryPage } from './components/HistoryPage';
 import { HelpPage } from './components/HelpPage';
 
 const queryClient = new QueryClient({
@@ -17,31 +16,28 @@ function App() {
   const path = window.location.pathname;
   
   const renderContent = () => {
-    switch (path) {
-      case '/library':
-        return (
-          <Layout>
-            <SolutionLibrary />
-          </Layout>
-        );
-      
-      case '/history':
-        return (
-          <Layout>
-            <HistoryPage />
-          </Layout>
-        );
-      
-      case '/help':
-        return (
-          <Layout>
-            <HelpPage />
-          </Layout>
-        );
-      
-      default:
-        return <VibeSolver />;
+    if (path === '/library') {
+      return (
+        <Layout>
+          <SolutionLibrary />
+        </Layout>
+      );
     }
+    
+    if (path === '/help') {
+      return (
+        <Layout>
+          <HelpPage />
+        </Layout>
+      );
+    }
+    
+    // Handle solution loading from URL parameters
+    const urlParams = new URLSearchParams(window.location.search);
+    const solutionId = urlParams.get('solution') || urlParams.get('edit');
+    const isEditMode = urlParams.has('edit');
+    
+    return <VibeSolver solutionId={solutionId} editMode={isEditMode} />;
   };
 
   return (

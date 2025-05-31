@@ -51,16 +51,6 @@ function Header() {
               Solutions
             </button>
             <button 
-              onClick={() => navigateTo('/history')}
-              className={`transition-colors ${
-                currentPath === '/history' 
-                  ? 'text-blue-600 font-medium' 
-                  : 'text-gray-600 hover:text-gray-900'
-              }`}
-            >
-              History
-            </button>
-            <button 
               onClick={() => navigateTo('/help')}
               className={`transition-colors ${
                 currentPath === '/help' 

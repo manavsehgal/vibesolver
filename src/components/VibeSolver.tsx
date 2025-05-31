@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Layout } from './Layout';
 import { RequirementsForm } from './RequirementsForm';
 import { SolutionDisplay } from './SolutionDisplay';
@@ -14,9 +14,16 @@ import { useToast } from '@/hooks/useToast';
 import { type AWSSolutionResponse, type FlashcardResponse, type WhatIfAnalysisResponse } from '@/types';
 import { Save } from 'lucide-react';
 
-export function VibeSolver() {
+interface VibeSolverProps {
+  solutionId?: string | null;
+  editMode?: boolean;
+}
+
+export function VibeSolver({ solutionId, editMode = false }: VibeSolverProps) {
   const [currentSolution, setCurrentSolution] = useState<AWSSolutionResponse | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
+  const [isLoadingSolution, setIsLoadingSolution] = useState(false);
+  const [loadedSolutionId, setLoadedSolutionId] = useState<string | null>(null);
   const { saveSolution, isSaving } = useSolutionStore();
   const { showToast } = useToast();
   
@@ -34,6 +41,62 @@ export function VibeSolver() {
   const performWhatIfAnalysis = useWhatIfAnalysis();
   const modifySolution = useModifySolution();
   const explainSolution = useExplainSolution();
+
+  // Load solution when solutionId changes
+  useEffect(() => {
+    const loadSolution = async () => {
+      if (!solutionId || solutionId === loadedSolutionId) return;
+      
+      setIsLoadingSolution(true);
+      try {
+        const { solutionOperations } = await import('@/db');
+        const solution = await solutionOperations.getById(solutionId);
+        
+        if (solution) {
+          // Convert database solution to AWSSolutionResponse format
+          const awsSolution: AWSSolutionResponse = {
+            title: solution.title,
+            description: solution.description,
+            awsServices: solution.awsServices ? JSON.parse(solution.awsServices) : [],
+            architecture: solution.architecture ? JSON.parse(solution.architecture) : null,
+            costEstimate: solution.costEstimate || 0,
+            recommendations: solution.recommendations ? JSON.parse(solution.recommendations) : []
+          };
+          
+          setCurrentSolution(awsSolution);
+          setLoadedSolutionId(solutionId);
+          
+          // Update last accessed time
+          await solutionOperations.updateLastAccessed(solutionId);
+          
+          if (!editMode) {
+            showToast({
+              type: 'success',
+              title: 'Solution Loaded',
+              message: `${solution.title} has been loaded successfully.`
+            });
+          }
+        } else {
+          showToast({
+            type: 'error',
+            title: 'Solution Not Found',
+            message: 'The requested solution could not be found.'
+          });
+        }
+      } catch (error) {
+        console.error('Failed to load solution:', error);
+        showToast({
+          type: 'error',
+          title: 'Load Failed',
+          message: 'Failed to load solution. Please try again.'
+        });
+      } finally {
+        setIsLoadingSolution(false);
+      }
+    };
+
+    loadSolution();
+  }, [solutionId, loadedSolutionId, editMode, showToast]);
 
   const handleSolutionGenerated = (solution: AWSSolutionResponse) => {
     setCurrentSolution(solution);
@@ -124,28 +187,47 @@ export function VibeSolver() {
   const handleSaveSolution = async () => {
     if (!currentSolution) return;
 
-    const solutionToSave = {
-      id: `solution-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-      title: currentSolution.title,
-      description: currentSolution.description,
-      awsServices: JSON.stringify(currentSolution.awsServices),
-      architecture: JSON.stringify(currentSolution.architecture),
-      requirements: 'Generated from VibeSolver', // TODO: Store actual requirements
-      costEstimate: currentSolution.costEstimate || null,
-      recommendations: JSON.stringify(currentSolution.recommendations),
-      tags: JSON.stringify(['generated']),
-      status: 'draft' as const,
-      version: 1,
-      parentId: null,
-      isTemplate: false,
-      isFavorite: false,
-      lastAccessedAt: new Date(),
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    };
-
     try {
-      await saveSolution(solutionToSave);
+      const { solutionOperations } = await import('@/db');
+      
+      if (loadedSolutionId) {
+        // Update existing solution
+        const updates = {
+          title: currentSolution.title,
+          description: currentSolution.description,
+          awsServices: JSON.stringify(currentSolution.awsServices),
+          architecture: JSON.stringify(currentSolution.architecture),
+          costEstimate: currentSolution.costEstimate || null,
+          recommendations: JSON.stringify(currentSolution.recommendations),
+          updatedAt: new Date(),
+        };
+        
+        await solutionOperations.update(loadedSolutionId, updates);
+      } else {
+        // Create new solution
+        const solutionToSave = {
+          id: `solution-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+          title: currentSolution.title,
+          description: currentSolution.description,
+          awsServices: JSON.stringify(currentSolution.awsServices),
+          architecture: JSON.stringify(currentSolution.architecture),
+          requirements: 'Generated from VibeSolver',
+          costEstimate: currentSolution.costEstimate || null,
+          recommendations: JSON.stringify(currentSolution.recommendations),
+          tags: JSON.stringify(['generated']),
+          status: 'draft' as const,
+          version: 1,
+          parentId: null,
+          isTemplate: false,
+          isFavorite: false,
+          lastAccessedAt: new Date(),
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        };
+
+        const savedSolution = await saveSolution(solutionToSave);
+        setLoadedSolutionId(savedSolution.id);
+      }
       showToast({
         type: 'success',
         title: 'Solution Saved',
@@ -163,7 +245,16 @@ export function VibeSolver() {
   return (
     <Layout>
       <div className="max-w-7xl mx-auto space-y-8">
-        {!currentSolution ? (
+        {isLoadingSolution ? (
+          <Card>
+            <CardContent className="py-12">
+              <LoadingSpinner 
+                size="lg" 
+                text={editMode ? "Loading solution for editing..." : "Loading solution..."} 
+              />
+            </CardContent>
+          </Card>
+        ) : !currentSolution ? (
           <div className="space-y-8">
             <div className="text-center">
               <h2 className="text-3xl font-bold text-gray-900 mb-4">
@@ -192,7 +283,7 @@ export function VibeSolver() {
           <div className="space-y-8">
             <div className="flex items-center justify-between">
               <h2 className="text-2xl font-bold text-gray-900">
-                Your AWS Solution
+                {editMode && loadedSolutionId ? 'Editing AWS Solution' : 'Your AWS Solution'}
               </h2>
               <div className="flex gap-4">
                 <Button
@@ -202,7 +293,7 @@ export function VibeSolver() {
                   disabled={isSaving}
                 >
                   <Save className="w-4 h-4 mr-2" />
-                  {isSaving ? 'Saving...' : 'Save Solution'}
+                  {isSaving ? 'Saving...' : loadedSolutionId ? 'Update Solution' : 'Save Solution'}
                 </Button>
                 <button
                   onClick={() => window.location.href = '/library'}
