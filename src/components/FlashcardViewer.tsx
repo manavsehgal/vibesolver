@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import { Card, CardContent, Button, LoadingSpinner } from './ui';
 import { type FlashcardResponse } from '@/types';
 
@@ -12,9 +12,17 @@ export function FlashcardViewer({ flashcards, onClose, onRateCard }: FlashcardVi
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isFlipped, setIsFlipped] = useState(false);
   const [completedCards, setCompletedCards] = useState<Set<number>>(new Set());
+  const containerRef = useRef<HTMLDivElement>(null);
 
   const currentCard = flashcards[currentIndex];
   const progress = ((currentIndex + 1) / flashcards.length) * 100;
+
+  // Focus the container when component mounts for keyboard events
+  useEffect(() => {
+    if (containerRef.current) {
+      containerRef.current.focus();
+    }
+  }, []);
 
   const handleNext = useCallback(() => {
     if (currentIndex < flashcards.length - 1) {
@@ -45,31 +53,47 @@ export function FlashcardViewer({ flashcards, onClose, onRateCard }: FlashcardVi
   }, [currentIndex, onRateCard, handleNext, flashcards.length]);
 
   const handleKeyDown = useCallback((e: KeyboardEvent) => {
+    // Only handle keyboard events when the flashcard viewer is focused
     switch (e.key) {
       case ' ':
+        e.preventDefault();
+        e.stopPropagation();
+        handleFlip();
+        break;
       case 'Enter':
         e.preventDefault();
+        e.stopPropagation();
         handleFlip();
         break;
       case 'ArrowLeft':
         e.preventDefault();
+        e.stopPropagation();
         handlePrevious();
         break;
       case 'ArrowRight':
         e.preventDefault();
+        e.stopPropagation();
         handleNext();
         break;
       case 'Escape':
         e.preventDefault();
+        e.stopPropagation();
         onClose();
         break;
     }
   }, [handleFlip, handleNext, handlePrevious, onClose]);
 
-  // Keyboard event listener
+  // Keyboard event listener with capture phase to ensure we get the event first
   useEffect(() => {
-    document.addEventListener('keydown', handleKeyDown);
-    return () => document.removeEventListener('keydown', handleKeyDown);
+    const handleKeyDownCapture = (e: KeyboardEvent) => {
+      // Only handle if flashcard viewer is mounted and visible
+      if (e.key === ' ' || e.key === 'Enter' || e.key === 'ArrowLeft' || e.key === 'ArrowRight' || e.key === 'Escape') {
+        handleKeyDown(e);
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDownCapture, true); // Use capture phase
+    return () => document.removeEventListener('keydown', handleKeyDownCapture, true);
   }, [handleKeyDown]);
 
   if (!currentCard) {
@@ -77,7 +101,11 @@ export function FlashcardViewer({ flashcards, onClose, onRateCard }: FlashcardVi
   }
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+    <div 
+      ref={containerRef}
+      className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
+      tabIndex={-1}
+    >
       <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-hidden">
         {/* Header */}
         <div className="bg-gray-50 px-6 py-4 border-b">
@@ -223,7 +251,7 @@ export function FlashcardViewer({ flashcards, onClose, onRateCard }: FlashcardVi
 }
 
 interface FlashcardGeneratorProps {
-  onFlashcardsGenerated: (flashcards: FlashcardResponse[]) => void;
+  onFlashcardsGenerated: () => void;
   onClose: () => void;
   isGenerating?: boolean;
 }
@@ -258,7 +286,7 @@ export function FlashcardGenerator({
 
   const handleGenerate = () => {
     if (selectedTopics.length > 0) {
-      onFlashcardsGenerated([]);
+      onFlashcardsGenerated();
     }
   };
 

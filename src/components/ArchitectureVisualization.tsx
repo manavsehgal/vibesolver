@@ -83,6 +83,34 @@ export function ArchitectureVisualization({
       });
     }
   }, [components]);
+
+  const redrawLayout = useCallback(() => {
+    if (components.length === 0) return;
+    
+    // Simple grid layout algorithm
+    const gridSize = Math.ceil(Math.sqrt(components.length));
+    const spacing = 180;
+    
+    const newComponents = components.map((component, index) => {
+      const row = Math.floor(index / gridSize);
+      const col = index % gridSize;
+      
+      return {
+        ...component,
+        position: {
+          x: col * spacing + 50,
+          y: row * spacing + 50
+        }
+      };
+    });
+    
+    setComponents(newComponents);
+    
+    // Auto-fit after redraw
+    setTimeout(() => {
+      fitToScreen();
+    }, 100);
+  }, [components, fitToScreen]);
   
   const handleComponentDrag = useCallback((componentId: string, newPosition: { x: number; y: number }) => {
     setComponents(prev => prev.map(comp => 
@@ -119,6 +147,7 @@ export function ArchitectureVisualization({
             </span>
             <Button variant="outline" size="sm" onClick={zoomIn}>+</Button>
             <Button variant="outline" size="sm" onClick={fitToScreen}>Fit</Button>
+            <Button variant="outline" size="sm" onClick={redrawLayout}>Redraw</Button>
             <Button variant="outline" size="sm" onClick={resetView}>Reset</Button>
           </div>
         </div>
@@ -127,7 +156,7 @@ export function ArchitectureVisualization({
       <CardContent>
         <div 
           ref={canvasRef}
-          className="relative w-full h-96 bg-gray-50 overflow-hidden cursor-grab active:cursor-grabbing select-none"
+          className="relative w-full aspect-square bg-gray-50 overflow-hidden cursor-grab active:cursor-grabbing select-none"
           onWheel={handleWheel}
           onMouseDown={handleMouseDown}
           onMouseMove={handleMouseMove}

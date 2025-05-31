@@ -46,3 +46,11 @@ pnpm serve:prod
 
 [✅] Solve the CORS issue to make the Anthropic API calls work. Use Vercel AI SDK (https://ai-sdk.dev/docs/introduction) with the tech stack defined in specs/stack.md. Do not create any new dependencies on Vercel Cloud (like functions) or Next.js.
 
+[✅] Increase the height of the architecture diagram canvas to match the width such that it is a square.
+
+[✅] Fix panning when holding an empty part of canvas and dragging.
+
+[✅] Add a "Redraw" button to redraw the diagram to ensure that all features of the diagram are visible with minimal overlap.
+
+[✅] Fix Flashcards generation. Currently it only generates the same two flashcards with answers, spacebar not working to flip and instead it only shows Easy, Medium, Hard tags. When Generate Flashcards is clicked follow error message appears - Anthropic API error: 400 {"type":"error","error":{"type":"invalid_request_error","message":"tools.0.custom.input_schema.type: Input should be 'object'"}}
+

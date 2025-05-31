@@ -165,14 +165,23 @@ app.all('/api/anthropic', (req, res) => {
   });
 });
 
-// Serve static files from dist directory with cache control
+// Serve static files from dist directory with proper MIME types and cache control
 app.use(express.static(path.join(__dirname, 'dist'), {
-  setHeaders: (res, path) => {
-    // Prevent caching of JS files to ensure updates are loaded
-    if (path.endsWith('.js')) {
+  setHeaders: (res, filePath) => {
+    // Set proper MIME type for JavaScript modules
+    if (filePath.endsWith('.js')) {
+      res.setHeader('Content-Type', 'application/javascript');
       res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
       res.setHeader('Pragma', 'no-cache');
       res.setHeader('Expires', '0');
+    }
+    // Set proper MIME type for CSS files
+    else if (filePath.endsWith('.css')) {
+      res.setHeader('Content-Type', 'text/css');
+    }
+    // Set proper MIME type for JSON files
+    else if (filePath.endsWith('.json')) {
+      res.setHeader('Content-Type', 'application/json');
     }
   }
 }));

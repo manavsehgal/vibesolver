@@ -177,7 +177,10 @@ export function VibeSolver() {
         {/* AI Feature Modals */}
         {showFlashcardGenerator && currentSolution && (
           <FlashcardGenerator
-            onFlashcardsGenerated={handleGenerateFlashcards}
+            onFlashcardsGenerated={() => {
+              setShowFlashcardGenerator(false);
+              handleGenerateFlashcards();
+            }}
             onClose={() => setShowFlashcardGenerator(false)}
             isGenerating={generateFlashcards.isPending}
           />

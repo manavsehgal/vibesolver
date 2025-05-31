@@ -115,7 +115,9 @@ export async function generateFlashcards(
   try {
     const result = await generateObject({
       model,
-      schema: z.array(flashcardSchema),
+      schema: z.object({
+        flashcards: z.array(flashcardSchema)
+      }),
       prompt: `Create ${count} educational flashcards based on this AWS solution:
 
 ${solutionData}
@@ -130,7 +132,7 @@ Generate flashcards covering:
 Each flashcard should have a clear, concise front (question/term) and comprehensive back (answer/explanation).`,
     });
 
-    return result.object;
+    return result.object.flashcards;
   } catch (error) {
     console.error('Error generating flashcards:', error);
     throw new Error('Failed to generate flashcards');
