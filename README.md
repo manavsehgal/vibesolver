@@ -6,6 +6,9 @@
 
 **🤖 AI Twin of an AWS Solutions Architect**
 
+### Get 📙 Vibe AWS companion book free on [Leanpub](https://leanpub.com/vibeaws)
+#### The book walks through how this project was vibe coded
+
 [![TypeScript](https://img.shields.io/badge/TypeScript-007ACC?style=flat&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
 [![React](https://img.shields.io/badge/React-20232A?style=flat&logo=react&logoColor=61DAFB)](https://reactjs.org/)
 [![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-38B2AC?style=flat&logo=tailwind-css&logoColor=white)](https://tailwindcss.com/)
@@ -18,12 +21,12 @@
 
 [Features](#-features) • [Quick Start](#-quick-start) • [Demo](#-demo) • [Documentation](#-documentation) • [Contributing](#-contributing)
 
+
+
 </div>
 
 ---
 
-### Get 📙 **Vibe AWS** companion book free on [Leanpub](https://leanpub.com/vibeaws). 
-#### Walk through how this project was vibe coded.
 
 ## 🚀 What is VibeSolver?
 
